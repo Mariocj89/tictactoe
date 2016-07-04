@@ -19,13 +19,19 @@ class Player(object):
         self.board = in_board
         assert role in [board.CIRCLE, board.CROSS]
 
-    def play(self):
-        row, column = self._next_movement()
-        if self.role == board.CROSS:
-            self.board.x(row, column)
+    @staticmethod
+    def _play(role, in_board, row, column):
+        """Plays a movement given all parameters"""
+        if role == board.CROSS:
+            in_board.x(row, column)
         else:
-            self.board.o(row, column)
-        print("Bot plays {}, {}".format(row, column))
+            in_board.o(row, column)
+
+    def play(self):
+        """Makes a movement"""
+        row, column = self._next_movement()
+        self._play(self.role, self.board, row, column)
+        print("{} plays {}, {}".format(self, row, column))
 
     def _next_movement(self):
         """Returns the a tuple that represents the desired movement of the player"""
@@ -72,6 +78,42 @@ class RandomComputerPlayer(Player):
         return row, column
 
 
+class GodComputerPlayer(Player):
+    """IA player that plays by analysing all options"""
+
+    TITLE = "God IA"
+
+    WIN_WEIGHT = 2
+    LOOSE_WEIGHT = -10
+    TIE_WEIGHT = 0
+
+    def _compute_score(self, in_board, row, column):
+        """Gets the heuristics of a movement the higher the better"""
+        res_board = in_board.clone()
+        self._play(self.role, res_board, row, column)
+        if res_board.winner:
+            if res_board.winner == self.role:
+                return self.WIN_WEIGHT
+            else:
+                return self.LOOSE_WEIGHT
+        elif res_board.completed:
+            return self.TIE_WEIGHT
+        else:
+            adversary_role = board.CROSS if self.role == board.CIRCLE else board.CIRCLE
+            adversary = GodComputerPlayer(adversary_role, res_board)
+            r, c = adversary._next_movement()
+            adversary._play(adversary_role, res_board, r, c)
+            movements = [x for x in itertools.product(range(3), range(3)) if res_board.is_free(*x)]
+            scores = [self._compute_score(res_board, x[0], x[1]) for x in movements]
+            return sum(scores)
+
+    def _next_movement(self):
+        movements = [x for x in itertools.product(range(3), range(3)) if self.board.is_free(*x)]
+        scores = [(self._compute_score(self.board, x[0], x[1]), x) for x in movements]
+        _, best_move = max(scores)
+        return best_move
+
+
 class Game(object):
     """Class to handle all interaction between players and the board"""
     def __init__(self):
@@ -81,6 +123,7 @@ class Game(object):
         options = {
             "H": HumanPlayer,
             "R": RandomComputerPlayer,
+            "G": GodComputerPlayer,
         }
         while True:
             print("Choose a Player for {}: ".format(role))

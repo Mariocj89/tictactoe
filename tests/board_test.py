@@ -99,5 +99,16 @@ class BoardTest(unittest.TestCase):
         board.o(0, 2)
         self.assertFalse(board.is_free(0, 2))
 
+    def test_clone_copies_already_set_cells(self):
+        board = Board()
+        board.o(0, 2)
+        self.assertFalse(board.clone().is_free(0, 2))
+
+    def test_clone_detaches_future_writes(self):
+        board = Board()
+        board2 = board.clone()
+        board.o(0, 2)
+        self.assertTrue(board2.is_free(0, 2))
+
 if __name__ == '__main__':
     unittest.main()

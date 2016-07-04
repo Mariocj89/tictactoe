@@ -1,4 +1,4 @@
-import itertools
+import copy
 
 CROSS = "X"
 CIRCLE = "O"
@@ -17,6 +17,10 @@ class AlreadySet(Exception):
 
 class Board(object):
     """Represents a board status"""
+
+    def clone(self):
+        """Creates a clone of itself"""
+        return Board(copy.deepcopy(self.status))
 
     def __init__(self, status=None):
         self.status = status or [[EMPTY for _ in range(3)] for _ in range(3)]

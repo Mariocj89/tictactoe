@@ -27,9 +27,11 @@ class Board(object):
 
     @property
     def completed(self):
+        """Wether the board is complete and no more moves can be performed"""
         return not any(any([x == EMPTY for x in row]) for row in self.status)
 
     def _has_won(self, player):
+        """Checks if a specific player has won"""
         combinations = [[(x, y) for x in range(3)] for y in range(3)]
         combinations += [[(y, x) for x in range(3)] for y in range(3)]
         combinations += [zip(range(3), range(3))]
@@ -37,14 +39,20 @@ class Board(object):
         return any(all(self.status[x][y] == player for x, y in comb) for comb in combinations)
 
     def o(self, row, column):
+        """Places a Circle in a position"""
         if self.status[row][column] != EMPTY:
             raise AlreadySet(row, column)
         self.status[row][column] = CIRCLE
 
     def x(self, row, column):
+        """Places a Cross in a position"""
         if self.status[row][column] != EMPTY:
             raise AlreadySet(row, column)
         self.status[row][column] = CROSS
+
+    def is_free(self, row, column):
+        """Checks if a position is free"""
+        return self.status[row][column] == EMPTY
 
     @property
     def winner(self):
@@ -56,47 +64,3 @@ class Board(object):
         else:
             return None
 
-
-def main():
-    import random
-    board = Board()
-    options = [CROSS, CIRCLE]
-    random.shuffle(options)
-    turns = itertools.cycle(options)
-    while True:
-        turn = next(turns)
-
-        print("Turn of: '{}'".format(turn))
-        while True:
-            try:
-                row = int(input("row: "))
-                column = int(input("column: "))
-            except (ValueError, NameError, SyntaxError):
-                print("Invalid number")
-                continue
-            if not(0 <= row <= 2) or not(0 <= column <= 2):
-                print("Invalid position")
-                continue
-
-            try:
-                if turn == CROSS:
-                    board.x(row, column)
-                elif turn == CIRCLE:
-                    board.o(row, column)
-                break
-            except AlreadySet:
-                print("Position already taken")
-                continue
-
-        print(board)
-
-        if board.winner:
-            print("{} wins!".format(board.winner))
-            return 0
-        if board.completed:
-            print("Game Finished")
-            return 0
-
-
-if __name__ == '__main__':
-    exit(main())

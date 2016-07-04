@@ -89,5 +89,15 @@ class BoardTest(unittest.TestCase):
                 board.o(i, j)
         self.assertTrue(board.completed)
 
+    def test_check_free_on_free_cell(self):
+        board = Board()
+        board.o(0, 2)
+        self.assertTrue(board.is_free(1, 2))
+
+    def test_check_free_on_not_free_cell(self):
+        board = Board()
+        board.o(0, 2)
+        self.assertFalse(board.is_free(0, 2))
+
 if __name__ == '__main__':
     unittest.main()
